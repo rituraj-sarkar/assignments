@@ -4,6 +4,22 @@
 */
 
 function isPalindrome(str) {
+  if (str.length <= 1) {
+    return true;
+  }
+
+  const filteredString = str.replace(/[^a-zA-Z]/g, '');
+  const mid = filteredString.length/2;
+
+  for (let index = 0; index <= mid; index++) {
+    const elementFromBeginning = filteredString[index];
+    const elementFromEnd = filteredString[filteredString.length - index - 1];
+
+    if (elementFromBeginning.toLowerCase() !== elementFromEnd.toLowerCase()) {
+      return false;
+    }
+  }
+
   return true;
 }
 
