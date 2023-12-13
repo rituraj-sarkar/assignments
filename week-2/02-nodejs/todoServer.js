@@ -39,11 +39,120 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require('fs');
+const path = require("path");
+const db = path.join(__dirname, "todos.json");
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/todos', (req, res) => {
+  fs.readFile(db, 'utf-8', (err, data) => {
+    if (err) {
+      return res.status(500).json({error : "failed to extract files"});
+    }
+    jsonArray = JSON.parse(data);
+    return res.json(jsonArray);
+  });
+});
+
+app.get('/todos/:id', (req, res) => {
+  fs.readFile(db, 'utf-8', (err, data) => {
+    let id = parseInt(req.params.id);
+    console.log(id);
+    if (err) {
+      return res.status(500).json({error : "failed to extract files"});
+    }
+    jsonArray = JSON.parse(data);
+    jsonArray.forEach(element => {
+      if (element.id === id) {
+        return res.json(element);
+      }
+    });
+    return res.status(404).send();
+  });
+});
+
+app.post('/todos', (req, res) => {
+  fs.readFile(db, 'utf-8', (err, data) => {
+    if (err) {
+      return res.status(500).json({error : "failed to extract files"});
+    }
+    const todo = {
+      id : Math.floor(Math.random() * 1000000),
+      title : req.body.title,
+      description : req.body.description,
+      completed : req.body.completed
+    };
+
+    todos = JSON.parse(data);
+    todos.push(todo);
+    
+    fs.writeFile(db, JSON.stringify(todos), (err)=> {
+      if (err) {
+        return res.status(500).json({error : "failed to extract files"});
+      }
+      return res.status(201).json(todo);
+    });
+  });
+});
+
+app.put('/todos/:id', (req, res) => {
+  fs.readFile(db, 'utf-8', (err, data) => {
+    let id = parseInt(req.params.id);
+    if (err) {
+      return res.status(500).json({error : "failed to extract files"});
+    }
+    todos = JSON.parse(data);
+    let index = todos.findIndex(t => t.id === id);
+    if (index === -1) {
+      return res.status(404).send();
+    }
+    const newTodo = {
+      id : todos[index].id,
+      title : req.body.title,
+      description : req.body.description,
+      completed : req.body.completed
+    };
+    todos[index] = newTodo;
+    fs.writeFile(db, JSON.stringify(todos), (err)=> {
+      if (err) {
+        return res.status(500).json({error : "failed to extract files"});
+      }
+      return res.status(200).json(newTodo);
+    });
+  });
+});
+
+app.delete('/todos/:id', (req, res) => {
+  fs.readFile(db, 'utf-8', (err, data) => {
+    let id = parseInt(req.params.id);
+    if (err) {
+      return res.status(500).json({error : "failed to extract files"});
+    }
+    todos = JSON.parse(data);
+    let index = todos.findIndex(t => t.id === id);
+    if (index === -1) {
+      return res.status(404).send();
+    }
+    let newTodos = [];
+    todos.forEach(t => {
+      if (t.id !== id) {
+        newTodos.push(t);
+      }
+    });
+
+    fs.writeFile(db, JSON.stringify(newTodos), (err)=> {
+      if (err) {
+        return res.status(500).json({error : "failed to extract files"});
+      }
+      console.log('kuch_bhi');
+      return res.status(200).json();
+    });
+  });
+});
+
+module.exports = app;
